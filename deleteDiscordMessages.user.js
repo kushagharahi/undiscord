@@ -786,8 +786,20 @@
 	  async deleteMessage(message) {
 	    const API_DELETE_URL = `https://discord.com/api/v9/channels/${message.channel_id}/messages/${message.id}`;
 	    let resp;
+	    
 	    try {
 	      this.beforeRequest();
+
+	      // Overwrite with gibberish before deletion
+	      await fetch(API_DELETE_URL, {
+	        method: 'PATCH',
+	        headers: { 'Authorization': this.options.authToken, 'Content-Type': 'application/json' },
+	        body: JSON.stringify({ content: Math.random().toString(36).slice(2) }),
+	      });
+
+	      // Delay to ensure the edit sticks and avoid instant 429
+	      await wait(this.options.deleteDelay);
+
 	      resp = await fetch(API_DELETE_URL, {
 	        method: 'DELETE',
 	        headers: {
